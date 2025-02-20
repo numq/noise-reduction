@@ -20,29 +20,21 @@ internal class SileroNoiseReduction(private var modelType: SileroModelType) : No
 
     private var model = loadModel(modelType).getOrThrow()
 
-    /*private fun loadModel(modelType: SileroModelType): Result<SileroModel> = runCatching {
-        val resourceStream = Companion::class.java.classLoader.getResourceAsStream("model/${modelType.fullName}.onnx")
-            ?: throw IllegalStateException("Model file '${modelType.fullName}' not found in resources")
+    private fun resampleIfNeeded(
+        inputData: ByteArray,
+        channels: Int,
+        inputSampleRate: Int,
+        outputSampleRate: Int,
+    ) = when (inputSampleRate) {
+        outputSampleRate -> inputData
 
-        val tempFile = File.createTempFile(modelType.fullName, ".onnx").apply {
-            deleteOnExit()
-            outputStream().use { resourceStream.copyTo(it) }
-        }
-
-        OnnxSileroModel(modelPath = tempFile.absolutePath)
-    }*/
-
-    private fun resampleIfNeeded(inputData: ByteArray, channels: Int, inputSampleRate: Int, outputSampleRate: Int) =
-        when (inputSampleRate) {
-            outputSampleRate -> inputData
-
-            else -> resample(
-                inputData = inputData,
-                channels = channels,
-                inputSampleRate = inputSampleRate,
-                outputSampleRate = outputSampleRate
-            )
-        }
+        else -> resample(
+            inputData = inputData,
+            channels = channels,
+            inputSampleRate = inputSampleRate,
+            outputSampleRate = outputSampleRate
+        )
+    }
 
     private fun loadModel(modelType: SileroModelType): Result<SileroModel> = runCatching {
         val resourceStream = Companion::class.java.classLoader.getResourceAsStream("model/${modelType.fullName}.pt")

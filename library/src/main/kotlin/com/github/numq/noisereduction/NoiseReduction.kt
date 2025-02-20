@@ -30,16 +30,6 @@ interface NoiseReduction : AutoCloseable {
              * @return a [Result] containing the created instance if successful.
              */
             fun create(modelType: SileroModelType = SileroModelType.Small.Fast): Result<Silero> = runCatching {
-//                val resourceStream =
-//                    Companion::class.java.classLoader.getResourceAsStream("model/${modelType.fullName}.onnx")
-//                        ?: throw IllegalStateException("Model file '${modelType.fullName}' not found in resources")
-//
-//                val tempFile = File.createTempFile(modelType.fullName, ".onnx").apply {
-//                    deleteOnExit()
-//                    outputStream().use { resourceStream.copyTo(it) }
-//                }
-//
-//                SileroNoiseReduction(model = DefaultSileroOnnxModel(modelPath = tempFile.absolutePath))
                 SileroNoiseReduction(modelType = modelType)
             }
         }
