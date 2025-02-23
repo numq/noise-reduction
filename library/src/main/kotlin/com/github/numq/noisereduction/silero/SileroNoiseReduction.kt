@@ -3,13 +3,13 @@ package com.github.numq.noisereduction.silero
 import com.github.numq.noisereduction.NoiseReduction
 import com.github.numq.noisereduction.audio.AudioProcessing.calculateChunkSize
 import com.github.numq.noisereduction.audio.AudioProcessing.resample
-import com.github.numq.noisereduction.silero.model.PytorchSileroModel
 import com.github.numq.noisereduction.silero.model.SileroModel
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
-import java.io.File
 
-internal class SileroNoiseReduction(private var modelType: SileroModelType) : NoiseReduction.Silero {
+internal class SileroNoiseReduction(
+    private val model: SileroModel,
+) : NoiseReduction.Silero {
     private companion object {
         const val MINIMUM_CHUNK_MILLIS = 1_000
         const val TARGET_INPUT_SAMPLE_RATE = 24_000
@@ -17,8 +17,6 @@ internal class SileroNoiseReduction(private var modelType: SileroModelType) : No
     }
 
     private val mutex = Mutex()
-
-    private var model = loadModel(modelType).getOrThrow()
 
     private fun resampleIfNeeded(
         inputData: ByteArray,
@@ -34,32 +32,6 @@ internal class SileroNoiseReduction(private var modelType: SileroModelType) : No
             inputSampleRate = inputSampleRate,
             outputSampleRate = outputSampleRate
         )
-    }
-
-    private fun loadModel(modelType: SileroModelType): Result<SileroModel> = runCatching {
-        val resourceStream = Companion::class.java.classLoader.getResourceAsStream("model/${modelType.fullName}.pt")
-            ?: throw IllegalStateException("Model file '${modelType.fullName}' not found in resources")
-
-        val tempFile = File.createTempFile(modelType.fullName, ".onnx").apply {
-            deleteOnExit()
-            outputStream().use { resourceStream.copyTo(it) }
-        }
-
-        PytorchSileroModel(modelPath = tempFile.absolutePath)
-    }
-
-    override suspend fun getModelType() = mutex.withLock { Result.success(modelType) }
-
-    override suspend fun changeModelType(modelType: SileroModelType) = mutex.withLock {
-        runCatching {
-            if (this.modelType != modelType) {
-                model.close()
-
-                model = loadModel(modelType).onSuccess {
-                    this.modelType = modelType
-                }.getOrThrow()
-            }
-        }
     }
 
     override fun inputSizeForMillis(sampleRate: Int, channels: Int, millis: Long) = runCatching {

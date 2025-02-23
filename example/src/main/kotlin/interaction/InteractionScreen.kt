@@ -1,8 +1,5 @@
 package interaction
 
-import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.animation.expandIn
-import androidx.compose.animation.shrinkOut
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
@@ -19,17 +16,14 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import capturing.CapturingService
 import com.github.numq.noisereduction.NoiseReduction
-import com.github.numq.noisereduction.silero.SileroModelType
 import device.Device
 import device.DeviceService
-import item.SileroModelTypeItem
 import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.onEach
 import playback.PlaybackService
-import selector.SileroModelTypeItemSelector
 import javax.sound.sampled.AudioFormat
 
 @Composable
@@ -54,28 +48,6 @@ fun InteractionScreen(
 
     var isNoiseReductionEnabled by remember { mutableStateOf(false) }
 
-    var selectedSileroModelTypeItem by remember { mutableStateOf(SileroModelTypeItem.SMALL_FAST) }
-
-    LaunchedEffect(selectedSileroModelTypeItem) {
-        val modelType = when (selectedSileroModelTypeItem) {
-            SileroModelTypeItem.SMALL_FAST -> SileroModelType.Small.Fast
-
-            SileroModelTypeItem.SMALL_SLOW -> SileroModelType.Small.Slow
-
-            SileroModelTypeItem.LARGE_FAST -> SileroModelType.Large.Fast
-        }
-
-        silero.changeModelType(modelType).mapCatching {
-            selectedSileroModelTypeItem = when (silero.getModelType().getOrThrow()) {
-                is SileroModelType.Small.Fast -> SileroModelTypeItem.SMALL_FAST
-
-                is SileroModelType.Small.Slow -> SileroModelTypeItem.SMALL_SLOW
-
-                is SileroModelType.Large.Fast -> SileroModelTypeItem.LARGE_FAST
-            }
-        }.onFailure(handleThrowable)
-    }
-
     LaunchedEffect(refreshRequested) {
         deviceJob?.cancelAndJoin()
         deviceJob = null
@@ -98,7 +70,7 @@ fun InteractionScreen(
         }
     }
 
-    LaunchedEffect(selectedCapturingDevice, isNoiseReductionEnabled, selectedSileroModelTypeItem) {
+    LaunchedEffect(selectedCapturingDevice, isNoiseReductionEnabled) {
         playbackService.stop()
 
         capturingJob?.cancelAndJoin()
@@ -158,22 +130,6 @@ fun InteractionScreen(
                 Switch(isNoiseReductionEnabled, onCheckedChange = {
                     isNoiseReductionEnabled = it
                 })
-            }
-
-            AnimatedVisibility(visible = isNoiseReductionEnabled, enter = expandIn(), exit = shrinkOut()) {
-                Column(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalAlignment = Alignment.CenterHorizontally,
-                    verticalArrangement = Arrangement.spacedBy(space = 8.dp, alignment = Alignment.CenterVertically)
-                ) {
-                    Text("Silero model type")
-
-                    SileroModelTypeItemSelector(
-                        modifier = Modifier.fillMaxWidth(), selectedSileroModelTypeItem = selectedSileroModelTypeItem
-                    ) { modelTypeItem ->
-                        selectedSileroModelTypeItem = modelTypeItem
-                    }
-                }
             }
 
             Divider()

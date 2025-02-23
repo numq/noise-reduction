@@ -53,10 +53,6 @@ while trying to preserve and/or enhance speech.
   NoiseReduction.Silero.create()
   ```
 
-    - Call `getModelType` to get the selected model type
-
-    - Call `changeModelType` to change the selected model type
-
 
 - Call `inputSizeForMillis` to get the input data size for N milliseconds
 

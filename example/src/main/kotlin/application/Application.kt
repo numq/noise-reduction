@@ -17,18 +17,29 @@ import androidx.compose.ui.window.WindowState
 import androidx.compose.ui.window.singleWindowApplication
 import capturing.CapturingService
 import com.github.numq.noisereduction.NoiseReduction
-import com.github.numq.noisereduction.silero.SileroModelType
 import device.DeviceService
 import interaction.InteractionScreen
 import playback.PlaybackService
+import java.nio.file.Paths
 
 const val APP_NAME = "Noise reduction"
 
 fun main() {
+    val pathToModel = Thread.currentThread().contextClassLoader.getResource("model")?.toURI()
+
+    checkNotNull(pathToModel) { "Model not found" }
+
     singleWindowApplication(state = WindowState(width = 512.dp, height = 512.dp), title = APP_NAME) {
         val deviceService = remember { DeviceService.create().getOrThrow() }
 
-        val silero = remember { NoiseReduction.Silero.create().getOrThrow() }
+        val silero = remember {
+            NoiseReduction.Silero.create(
+                modelPath = Paths.get(
+                    Paths.get(pathToModel).toAbsolutePath().toString(),
+                    "silero_denoise_small_fast.pt"
+                ).toAbsolutePath().toString()
+            ).getOrThrow()
+        }
 
         val capturingService = remember { CapturingService.create().getOrThrow() }
 
@@ -53,12 +64,9 @@ fun main() {
                     handleThrowable = setThrowable
                 )
                 throwable?.let { t ->
-                    Snackbar(
-                        modifier = Modifier.padding(8.dp),
-                        action = {
-                            Button(onClick = { setThrowable(null) }) { Text("Dismiss") }
-                        }
-                    ) { Text(t.localizedMessage) }
+                    Snackbar(modifier = Modifier.padding(8.dp), action = {
+                        Button(onClick = { setThrowable(null) }) { Text("Dismiss") }
+                    }) { Text(t.localizedMessage) }
                 }
             }
         }
