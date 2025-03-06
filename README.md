@@ -3,6 +3,22 @@
 JVM library for noise reduction written in Kotlin based on the ML
 model [Silero](https://github.com/snakers4/silero-models)
 
+### See also
+
+- [Stretch](https://github.com/numq/stretch) *to change the speed of audio without changing the pitch*
+
+
+- [Voice Activity Detection](https://github.com/numq/voice-activity-detection) *to extract speech from audio*
+
+
+- [Speech recognition](https://github.com/numq/speech-recognition) *to transcribe audio to text*
+
+
+- [Speech generation](https://github.com/numq/speech-generation) *to generate voice audio from text*
+
+
+- [Text generation](https://github.com/numq/text-generation) *to generate text from prompt*
+
 ## When to use
 
 ### Silero

@@ -19,18 +19,18 @@ internal class SileroNoiseReduction(
     private val mutex = Mutex()
 
     private fun resampleIfNeeded(
-        inputData: ByteArray,
-        channels: Int,
         inputSampleRate: Int,
         outputSampleRate: Int,
+        inputData: ByteArray,
+        channels: Int,
     ) = when (inputSampleRate) {
         outputSampleRate -> inputData
 
         else -> resample(
             inputData = inputData,
-            channels = channels,
             inputSampleRate = inputSampleRate,
-            outputSampleRate = outputSampleRate
+            outputSampleRate = outputSampleRate,
+            channels = channels,
         )
     }
 
